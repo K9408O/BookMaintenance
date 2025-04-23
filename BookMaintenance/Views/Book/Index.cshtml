@@ -1,0 +1,101 @@
+﻿@model BookMaintenance.Models.ViewModel.BookQueryViewModel
+
+<form asp-action="Index" method="get" class="mb-4 border p-3">
+    <div class="row g-2">
+        <div class="col-md-3">
+            <label class="form-label">書名</label>
+            <input type="text" name="bookName" value="@Model.BookName" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">圖書類別</label>
+            <select name="bookClassId" class="form-select">
+                <option value="">全部</option>
+                @foreach (var item in Model.BookClasses)
+                {
+                    <option value="@item.Value" selected="@(item.Value == Model.BookClassId)">
+                        @item.Text
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">借閱人</label>
+            <select name="borrowerId" class="form-select">
+                <option value="">全部</option>
+                @foreach (var item in Model.Borrowers)
+                {
+                    <option value="@item.Value" selected="@(item.Value == Model.BorrowerId)">
+                        @item.Text
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">借閱狀態</label>
+            <select name="bookStatus" class="form-select">
+                <option value="">全部</option>
+                @foreach (var item in Model.Statuses)
+                {
+                    <option value="@item.Value" selected="@(item.Value == Model.BookStatus)">
+                        @item.Text
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="mt-3">
+        <button class="btn btn-primary" type="submit">查詢</button>
+        <a class="btn btn-secondary" href="@Url.Action("Index")">清除</a>
+        <a class="btn btn-success" href="@Url.Action("Create")">新增</a>
+    </div>
+</form>
+
+@if (Model.BookData != null && Model.BookData.Any())
+{
+    <table class="table table-bordered table-hover mt-4">
+        <colgroup>
+            <col style="width: 15%" />
+            <col style="width: 25%" />
+            <col style="width: 15%" />
+            <col style="width: 15%" />
+            <col style="width: 15%" />
+            <col style="width: 15%" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th>圖書類別</th>
+                <th>書名</th>
+                <th>購書日期</th>
+                <th>借閱狀態</th>
+                <th>借閱人</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in Model.BookData)
+            {
+                <tr>
+                    <td>@book.Book_Class_Id</td> @* 或改成 book.BookClassName if joined *@
+                    <td>
+                        <a href="@Url.Action("Detail", "Book", new { id = book.Book_Id })">
+                            @book.Book_Name
+                        </a>
+                    </td>
+                    <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
+                    <td>@book.Book_Status</td>
+                    <td>@book.Book_Keeper</td> @* 或改成 book.KeeperName if joined *@
+                    <td>
+                        <a class="btn btn-sm btn-info" href="@Url.Action("History", "Book", new { id = book.Book_Id })">借閱紀錄</a>
+                        <a class="btn btn-sm btn-warning" href="@Url.Action("Edit", "Book", new { id = book.Book_Id })">編輯</a>
+                        <a class="btn btn-sm btn-danger" onclick="return confirm('確定要刪除這筆資料嗎？')"
+                           href="@Url.Action("Delete", "Book", new { id = book.Book_Id })">刪除</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted mt-4">查無資料</p>
+}

@@ -1,0 +1,27 @@
+﻿@model List<BookMaintenance.Models.BookData>
+
+<h2>圖書清單</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>書名</th>
+            <th>作者</th>
+            <th>出版社</th>
+            <th>購買日期</th>
+            <th class="text-end">數量</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model)
+        {
+            <tr>
+                <td>@book.Book_Name</td>
+                <td>@book.Book_Author</td>
+                <td>@book.Book_Publisher</td>
+                <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
+                <td class="text-end">@book.Book_Amount.ToString("N0")</td>
+            </tr>
+        }
+    </tbody>
+</table>
