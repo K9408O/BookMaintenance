@@ -1,0 +1,121 @@
+﻿@model BookMaintenance.Models.ViewModel.BookEditViewModel
+@using System.Text.Encodings.Web
+
+<h3>圖書編輯畫面</h3>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Book_Id" />
+    <table class="table">
+        <tr>
+            <td class="text-danger">*</td>
+            <td>書名</td>
+            <td>
+                <input asp-for="Book_Name" class="form-control" />
+                <span asp-validation-for="Book_Name" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>作者</td>
+            <td>
+                <input asp-for="Book_Author" class="form-control" />
+                <span asp-validation-for="Book_Author" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>出版社</td>
+            <td>
+                <input asp-for="Book_Publisher" class="form-control" />
+                <span asp-validation-for="Book_Publisher" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>內容簡介</td>
+            <td>
+                <textarea asp-for="Book_Note" class="form-control"></textarea>
+                <span asp-validation-for="Book_Note" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>購書日期</td>
+            <td>
+                <input asp-for="Book_Bought_Date" type="date" class="form-control" />
+                <span asp-validation-for="Book_Bought_Date" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>圖書類別</td>
+            <td>
+                <select asp-for="Book_Class_Id" asp-items="Model.BookClasses" class="form-select"></select>
+                <span asp-validation-for="Book_Class_Id" class="text-danger"></span>
+            </td>
+        </tr>
+
+        @if (Model.IsEdit)
+        {
+            <tr>
+                <td class="text-danger">*</td>
+                <td>借閱狀態</td>
+                <td>
+                    <select asp-for="Book_Status" asp-items="Model.Statuses" class="form-select" id="status-select"></select>
+                    <span asp-validation-for="Book_Status" class="text-danger"></span>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>借閱人</td>
+                <td>
+                    <select asp-for="Book_Keeper" asp-items="Model.Borrowers" class="form-select" id="keeper-select"></select>
+                    <span asp-validation-for="Book_Keeper" class="text-danger"></span>
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td colspan="3">
+                <button type="submit" class="btn btn-primary">存檔</button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">返回</a>
+                <a href="@Url.Action("Delete", new { id = Model.Book_Id })" class="btn btn-danger" onclick="return confirm('確定要刪除這筆資料嗎？')">刪除</a>
+            </td>
+        </tr>
+    </table>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updateKeeperField() {
+            const status = document.getElementById("status-select")?.value;
+            const keeper = document.getElementById("keeper-select");
+
+            if (status === "A" || status === "U") {
+                keeper.value = "";
+                keeper.disabled = true;
+            } else {
+                keeper.disabled = false;
+            }
+        }
+
+        document.getElementById("status-select")?.addEventListener("change", updateKeeperField);
+        window.onload = updateKeeperField;
+
+        // ✅ 顯示錯誤訊息的 popup
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+                          alert('@JavaScriptEncoder.Default.Encode(TempData["ErrorMessage"].ToString())');
+            </text>
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+                          alert('@JavaScriptEncoder.Default.Encode(TempData["SuccessMessage"].ToString())');
+            </text>
+        }
+    </script>
+}
+

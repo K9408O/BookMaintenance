@@ -22,7 +22,23 @@ namespace BookMaintenance.Controllers
         //查詢畫面(首頁)
         public IActionResult Index(string bookName, string bookClassId, string borrowerId, string bookStatus)
         {
-            var query = _context.BookData.AsQueryable();
+            var query = from book in _context.BookData
+                        join member in _context.Member on book.Book_Keeper equals member.User_Id into m
+                        from member in m.DefaultIfEmpty()
+                        join code in _context.BookCode.Where(c => c.Code_Type == "BOOK_STATUS")
+                            on book.Book_Status equals code.Code_Id into c
+                        from code in c.DefaultIfEmpty()
+                        select new BookListItemViewModel
+                        {
+                            Book_Id = book.Book_Id,
+                            Book_Name = book.Book_Name,
+                            Book_Class_Id = book.Book_Class_Id,
+                            Book_Bought_Date = book.Book_Bought_Date,
+                            Book_Status = book.Book_Status,
+                            Book_Status_Name = code.Code_Name ?? "",
+                            Book_Keeper = book.Book_Keeper,
+                            Book_Keeper_Name = member.User_Ename ?? ""
+                        };
 
             if (!string.IsNullOrEmpty(bookName))
                 query = query.Where(b => b.Book_Name.Contains(bookName));
@@ -41,14 +57,22 @@ namespace BookMaintenance.Controllers
                 BookClasses = _context.BookClass
                     .Select(c => new SelectListItem { Value = c.Book_Class_Id, Text = c.Book_Class_Name })
                     .ToList(),
+
                 Borrowers = _context.Member
                     .Select(m => new SelectListItem { Value = m.User_Id, Text = m.User_Ename })
                     .ToList(),
+
                 Statuses = _context.BookCode
                     .Where(c => c.Code_Type == "BOOK_STATUS")
                     .Select(c => new SelectListItem { Value = c.Code_Id, Text = c.Code_Name })
                     .ToList(),
-                BookData = query.OrderByDescending(b => b.Book_Bought_Date).ToList()
+
+                BookData = query.OrderByDescending(b => b.Book_Bought_Date).ToList(),
+
+                BookName = bookName,
+                BookClassId = bookClassId,
+                BookStatus = bookStatus,
+                BorrowerId = borrowerId
             };
 
             return View(viewModel);
@@ -74,20 +98,7 @@ namespace BookMaintenance.Controllers
         [HttpPost]
         public IActionResult Create(BookCreateViewModel model)
         {
-         
-            //if (!ModelState.IsValid)
-            //{
-            //    TempData["ErrorMessage"] = "請確認所有欄位皆已正確填寫！";
-            //    model.BookClasses = _context.BookClass
-            //        .Select(c => new SelectListItem
-            //        {
-            //            Value = c.Book_Class_Id,
-            //            Text = c.Book_Class_Name
-            //        }).ToList();
-
-            //    return View(model);
-            //}
-
+        
             var entity = new BookData
             {
                 Book_Name = model.BookName,
@@ -110,5 +121,135 @@ namespace BookMaintenance.Controllers
 
             return RedirectToAction("Index");
         }
+        //修改 Edit(GET)
+
+        public IActionResult Edit(int id)
+        {
+            var book = _context.BookData.FirstOrDefault(b => b.Book_Id == id);
+            if (book == null) return NotFound();
+
+            var vm = new BookEditViewModel
+            {
+                Book_Id = book.Book_Id,
+                Book_Name = book.Book_Name,
+                Book_Author = book.Book_Author,
+                Book_Publisher = book.Book_Publisher,
+                Book_Note = book.Book_Note,
+                Book_Bought_Date = book.Book_Bought_Date,
+                Book_Class_Id = book.Book_Class_Id,
+                Book_Status = book.Book_Status,
+                Book_Keeper = book.Book_Keeper,
+
+                BookClasses = _context.BookClass.Select(c => new SelectListItem
+                {
+                    Value = c.Book_Class_Id,
+                    Text = c.Book_Class_Name
+                }).ToList(),
+
+                Statuses = _context.BookCode
+                    .Where(c => c.Code_Type == "BOOK_STATUS")
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Code_Id,
+                        Text = c.Code_Name
+                    }).ToList(),
+
+                Borrowers = _context.Member.Select(m => new SelectListItem
+                {
+                    Value = m.User_Id,
+                    Text = m.User_Ename + "-" + m.User_Cname
+                }).ToList(),
+
+                IsEdit = true
+            };
+
+            return View(vm);
+        }
+        [HttpPost]
+        public IActionResult Edit(BookEditViewModel model)
+        {
+          
+            var entity = _context.BookData.FirstOrDefault(b => b.Book_Id == model.Book_Id);
+            if (entity == null) return NotFound();
+
+            entity.Book_Name = model.Book_Name;
+            entity.Book_Author = model.Book_Author;
+            entity.Book_Publisher = model.Book_Publisher;
+            entity.Book_Note = model.Book_Note;
+            entity.Book_Bought_Date = model.Book_Bought_Date;
+            entity.Book_Class_Id = model.Book_Class_Id;
+            entity.Book_Status = model.Book_Status;
+            entity.Book_Keeper = (model.Book_Status == "A" || model.Book_Status == "U") ? "" : model.Book_Keeper;
+            entity.Modify_Date = DateTime.Now;
+            entity.Modify_User = "admin"; // 或登入使用者
+
+            _context.SaveChanges();
+            return RedirectToAction("Index");
+        }
+        //刪除
+        public IActionResult Delete(int id)
+        {
+            var book = _context.BookData.FirstOrDefault(b => b.Book_Id == id);
+            if (book == null)
+            {
+                TempData["ErrorMessage"] = "找不到書籍資料，無法刪除。";
+                return View("Edit", GetEditViewModel(id));
+            }
+
+
+            // 判斷是否不可刪除
+            if (book.Book_Status == "B" || book.Book_Status == "C")// "已借出/已借出(未領)"
+            {
+                TempData["ErrorMessage"] = "此書籍目前狀態為『已借出』，無法刪除。";
+                return View("Edit", GetEditViewModel(id));
+            }
+
+            _context.BookData.Remove(book);
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "刪除成功！";
+            return View("Edit", GetEditViewModel(id));
+        }
+
+        private BookEditViewModel GetEditViewModel(int id)
+        {
+            var book = _context.BookData.FirstOrDefault(b => b.Book_Id == id);
+            if (book == null) return null;
+
+            return new BookEditViewModel
+            {
+                Book_Id = book.Book_Id,
+                Book_Name = book.Book_Name,
+                Book_Author = book.Book_Author,
+                Book_Publisher = book.Book_Publisher,
+                Book_Note = book.Book_Note,
+                Book_Bought_Date = book.Book_Bought_Date,
+                Book_Class_Id = book.Book_Class_Id,
+                Book_Status = book.Book_Status,
+                Book_Keeper = book.Book_Keeper,
+                BookClasses = _context.BookClass.Select(c => new SelectListItem
+                {
+                    Value = c.Book_Class_Id,
+                    Text = c.Book_Class_Name
+                }).ToList(),
+                Statuses = _context.BookCode
+                    .Where(c => c.Code_Type == "BOOK_STATUS")
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Code_Id,
+                        Text = c.Code_Name
+                    }).ToList(),
+                Borrowers = _context.Member.Select(m => new SelectListItem
+                {
+                    Value = m.User_Id,
+                    Text = m.User_Ename + "-" + m.User_Cname
+                }).ToList(),
+                IsEdit = true
+            };
+        }
+
+
+
+
+
     }
 }

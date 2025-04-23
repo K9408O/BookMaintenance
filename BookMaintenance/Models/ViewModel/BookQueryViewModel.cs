@@ -13,6 +13,6 @@ namespace BookMaintenance.Models.ViewModel
         public List<SelectListItem> Borrowers { get; set; }
         public List<SelectListItem> Statuses { get; set; }
 
-        public List<BookData> BookData{ get; set; }//Result
+        public List<BookListItemViewModel> BookData { get; set; }
     }
 }

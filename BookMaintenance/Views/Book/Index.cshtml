@@ -1,4 +1,5 @@
 ﻿@model BookMaintenance.Models.ViewModel.BookQueryViewModel
+@using System.Text.Encodings.Web
 
 <form asp-action="Index" method="get" class="mb-4 border p-3">
     <div class="row g-2">
@@ -77,13 +78,15 @@
                 <tr>
                     <td>@book.Book_Class_Id</td> @* 或改成 book.BookClassName if joined *@
                     <td>
-                        <a href="@Url.Action("Detail", "Book", new { id = book.Book_Id })">
+                        
                             @book.Book_Name
-                        </a>
+                       
                     </td>
                     <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
-                    <td>@book.Book_Status</td>
-                    <td>@book.Book_Keeper</td> @* 或改成 book.KeeperName if joined *@
+                    @* <td>@book.Book_Status</td> *@
+                    <td>@book.Book_Status_Name</td>
+                    <td>@book.Book_Keeper_Name</td>
+                    @*  <td>@book.Book_Keeper</td> 或改成 book.KeeperName if joined *@
                     <td>
                         <a class="btn btn-sm btn-info" href="@Url.Action("History", "Book", new { id = book.Book_Id })">借閱紀錄</a>
                         <a class="btn btn-sm btn-warning" href="@Url.Action("Edit", "Book", new { id = book.Book_Id })">編輯</a>
