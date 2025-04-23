@@ -1,0 +1,64 @@
+﻿@model BookMaintenance.Models.ViewModel.BookCreateViewModel
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<h3>新增畫面</h3>
+
+<form asp-action="Create" method="post">
+    <table class="table">
+        <tr>
+            <td class="text-danger">*</td>
+            <td>書名</td>
+            <td>
+                <input asp-for="BookName" class="form-control" />
+                <span asp-validation-for="BookName" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>作者</td>
+            <td><input asp-for="Author" class="form-control" /></td>
+            <span asp-validation-for="Author" class="text-danger"></span>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>出版社</td>
+            <td><input asp-for="Publisher" class="form-control" /></td>
+            <span asp-validation-for="Publisher" class="text-danger"></span>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>內容簡介</td>
+            <td><textarea asp-for="Description" class="form-control"></textarea></td>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>購書日期</td>
+            <td><input asp-for="BoughtDate" type="date" class="form-control" /></td>
+            <span asp-validation-for="BoughtDate" class="text-danger"></span>
+        </tr>
+        <tr>
+            <td class="text-danger">*</td>
+            <td>圖書類別</td>
+            <td>
+                <select asp-for="BookClassId" asp-items="Model.BookClasses" class="form-select">
+                    <option value="">請選擇</option></select>
+                <span asp-validation-for="BookClassId" class="text-danger"></span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <button type="submit" class="btn btn-primary">存檔</button>
+            </td>
+        </tr>
+    </table>
+</form>
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        alert('@Html.Raw(TempData["ErrorMessage"])');
+    </script>
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 

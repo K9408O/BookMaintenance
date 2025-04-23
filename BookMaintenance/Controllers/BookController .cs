@@ -19,7 +19,7 @@ namespace BookMaintenance.Controllers
             var books = _context.BookData.ToList();
             return View(books);
         }
-
+        //查詢畫面(首頁)
         public IActionResult Index(string bookName, string bookClassId, string borrowerId, string bookStatus)
         {
             var query = _context.BookData.AsQueryable();
@@ -52,6 +52,60 @@ namespace BookMaintenance.Controllers
             };
 
             return View(viewModel);
+        }
+
+        //新增
+        public IActionResult Create()
+        {
+            var viewModel = new BookCreateViewModel
+            {
+                BoughtDate = DateTime.Today.AddYears(-25), // 預設今天 - 25 年
+                BookClasses = _context.BookClass
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Book_Class_Id,
+                        Text
+                        = c.Book_Class_Name
+                    }).ToList()
+            };
+
+            return View(viewModel);
+        }
+        [HttpPost]
+        public IActionResult Create(BookCreateViewModel model)
+        {
+         
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "請確認所有欄位皆已正確填寫！";
+                model.BookClasses = _context.BookClass
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Book_Class_Id,
+                        Text = c.Book_Class_Name
+                    }).ToList();
+
+                return View(model);
+            }
+
+            var entity = new BookData
+            {
+                Book_Name = model.BookName,
+                Book_Author = model.Author,
+                Book_Publisher = model.Publisher,
+                Book_Note = model.Description,
+                Book_Bought_Date = model.BoughtDate,
+                Book_Class_Id = model.BookClassId,
+                Book_Amount = 1,
+                Book_Status = "A", // 預設可借閱
+                Create_Date = DateTime.Now,
+                Create_User = "admin" // 或從登入者取值
+            };
+
+            _context.BookData.Add(entity);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
         }
     }
 }
