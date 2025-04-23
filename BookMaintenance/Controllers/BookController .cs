@@ -83,7 +83,7 @@ namespace BookMaintenance.Controllers
         {
             var viewModel = new BookCreateViewModel
             {
-                BoughtDate = DateTime.Today.AddYears(-25), // 預設今天 - 25 年
+                BoughtDate = DateTime.Today.AddYears(-5), // 預設今天 - 5 年
                 BookClasses = _context.BookClass
                     .Select(c => new SelectListItem
                     {
@@ -111,9 +111,9 @@ namespace BookMaintenance.Controllers
                 Book_Status = "A", // 預設可借閱
                 Book_Keeper ="",
                 Create_Date = DateTime.Now,
-                Create_User = "1588", // 或從登入者取值
+                Create_User = "admin", // 或從登入者取值
                 Modify_Date = DateTime.Now,
-                Modify_User= "1588"
+                Modify_User= "admin"
             };
 
             _context.BookData.Add(entity);
@@ -256,6 +256,15 @@ namespace BookMaintenance.Controllers
             return RedirectToAction("Index");
         }
 
+        //明細detail
+        public IActionResult Detail(int id)
+        {
+            var model = GetEditViewModel(id);
+            if (model == null)
+                return NotFound();
 
+            model.IsEdit = false; // ✅ 標記為唯讀狀態（如果你想延用）
+            return View(model);   // 使用 Views/Book/Detail.cshtml
+        }
     }
 }

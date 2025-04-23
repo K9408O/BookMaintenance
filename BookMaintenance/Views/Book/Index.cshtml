@@ -79,9 +79,9 @@
                 <tr>
                     <td>@book.Book_Class_Id</td> @* 或改成 book.BookClassName if joined *@
                     <td>
-                        
+                        <a href="@Url.Action("Detail", "Book", new { id = book.Book_Id })">
                             @book.Book_Name
-                       
+                        </a>
                     </td>
                     <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
                     @* <td>@book.Book_Status</td> *@
