@@ -75,18 +75,18 @@ namespace BookMaintenance.Controllers
         public IActionResult Create(BookCreateViewModel model)
         {
          
-            if (!ModelState.IsValid)
-            {
-                TempData["ErrorMessage"] = "請確認所有欄位皆已正確填寫！";
-                model.BookClasses = _context.BookClass
-                    .Select(c => new SelectListItem
-                    {
-                        Value = c.Book_Class_Id,
-                        Text = c.Book_Class_Name
-                    }).ToList();
+            //if (!ModelState.IsValid)
+            //{
+            //    TempData["ErrorMessage"] = "請確認所有欄位皆已正確填寫！";
+            //    model.BookClasses = _context.BookClass
+            //        .Select(c => new SelectListItem
+            //        {
+            //            Value = c.Book_Class_Id,
+            //            Text = c.Book_Class_Name
+            //        }).ToList();
 
-                return View(model);
-            }
+            //    return View(model);
+            //}
 
             var entity = new BookData
             {
@@ -98,8 +98,11 @@ namespace BookMaintenance.Controllers
                 Book_Class_Id = model.BookClassId,
                 Book_Amount = 1,
                 Book_Status = "A", // 預設可借閱
+                Book_Keeper ="",
                 Create_Date = DateTime.Now,
-                Create_User = "admin" // 或從登入者取值
+                Create_User = "1588", // 或從登入者取值
+                Modify_Date = DateTime.Now,
+                Modify_User= "1588"
             };
 
             _context.BookData.Add(entity);
