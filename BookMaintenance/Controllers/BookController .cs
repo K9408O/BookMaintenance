@@ -193,23 +193,21 @@ namespace BookMaintenance.Controllers
             if (book == null)
             {
                 TempData["ErrorMessage"] = "找不到書籍資料，無法刪除。";
-                return View("Edit", GetEditViewModel(id));
+                return RedirectBackToCaller(id);
             }
 
-
             // 判斷是否不可刪除
-            if (book.Book_Status == "B" || book.Book_Status == "C")// "已借出/已借出(未領)"
+            if (book.Book_Status == "B" || book.Book_Status == "C")
             {
-                TempData["ErrorMessage"] = "此書籍目前狀態為『已借出』，無法刪除。";
-                return View("Edit", GetEditViewModel(id));
+                TempData["ErrorMessage"] = "此書籍目前狀態為『已借出』或『已借出(未領)』，無法刪除。";
+                return RedirectBackToCaller(id);
             }
 
             _context.BookData.Remove(book);
             _context.SaveChanges();
             TempData["SuccessMessage"] = "刪除成功！";
-            return View("Edit", GetEditViewModel(id));
+            return RedirectToAction("Index");
         }
-
         private BookEditViewModel GetEditViewModel(int id)
         {
             var book = _context.BookData.FirstOrDefault(b => b.Book_Id == id);
@@ -246,9 +244,17 @@ namespace BookMaintenance.Controllers
                 IsEdit = true
             };
         }
+       
+        private IActionResult RedirectBackToCaller(int id)
+        {
+            var referer = Request.Headers["Referer"].ToString();
 
-
-
+            if (referer.Contains("/Book/Edit"))
+            {
+                return View("Edit", GetEditViewModel(id));
+            }
+            return RedirectToAction("Index");
+        }
 
 
     }
