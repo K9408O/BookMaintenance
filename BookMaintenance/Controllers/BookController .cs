@@ -266,5 +266,23 @@ namespace BookMaintenance.Controllers
             model.IsEdit = false; // ✅ 標記為唯讀狀態（如果你想延用）
             return View(model);   // 使用 Views/Book/Detail.cshtml
         }
+
+        public IActionResult History(int id)
+        {
+            var records = (from record in _context.BookLendRecord
+                           join member in _context.Member on record.Keeper_Id equals member.User_Id
+                           where record.Book_Id == id
+                           orderby record.Lend_Date descending
+                           select new BookLendHistoryViewModel
+                           {
+                               LendDate = record.Lend_Date,
+                               KeeperId = member.User_Id,
+                               UserEname = member.User_Ename,
+                               UserCname = member.User_Cname
+                           }).ToList();
+
+            ViewBag.BookName = _context.BookData.FirstOrDefault(b => b.Book_Id == id)?.Book_Name;
+            return View(records);
+        }
     }
 }

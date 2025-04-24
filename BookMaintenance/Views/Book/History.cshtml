@@ -1,0 +1,31 @@
+﻿@model List<BookMaintenance.Models.ViewModel.BookLendHistoryViewModel>
+
+@{
+    ViewData["Title"] = "借閱紀錄";
+}
+
+<h3>借閱紀錄：@ViewBag.BookName</h3>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>借閱日期</th>
+            <th>借閱人員編號</th>
+            <th>英文姓名</th>
+            <th>中文姓名</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.LendDate.ToString("yyyy/MM/dd")</td>
+                <td>@r.KeeperId</td>
+                <td>@r.UserEname</td>
+                <td>@r.UserCname</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="@Url.Action("Index")" class="btn btn-secondary">返回列表</a>

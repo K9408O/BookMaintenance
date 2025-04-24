@@ -7,6 +7,10 @@
 <h3>書籍明細</h3>
 
 <table class="table table-bordered">
+    <colgroup>
+        <col style="width: 20%">
+        <col style="width: 80%">
+    </colgroup>
     <tr>
         <th>書名</th>
         <td>@Model.Book_Name</td>
@@ -33,7 +37,6 @@
             @(Model.BookClasses.FirstOrDefault(c => c.Value == Model.Book_Class_Id)?.Text ?? "")
         </td>
     </tr>
-
     <tr>
         <th>借閱狀態</th>
         <td>
