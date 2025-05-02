@@ -57,18 +57,29 @@ namespace BookMaintenance.Controllers
             var viewModel = new BookQueryViewModel
             {
                 BookClasses = _context.BookClass
-                    .Select(c => new SelectListItem { Value = c.Book_Class_Id, Text = c.Book_Class_Name })
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Book_Class_Id ?? "",
+                        Text = c.Book_Class_Name ?? "(未命名分類)"
+                    })
                     .ToList(),
 
                 Borrowers = _context.Member
-                    .Select(m => new SelectListItem { Value = m.User_Id, Text = m.User_Ename })
+                    .Select(m => new SelectListItem
+                    {
+                        Value = m.User_Id ?? "",
+                        Text = m.User_Ename ?? "(未知姓名)"
+                    })
                     .ToList(),
 
-                Statuses = _context.BookCode
+                 Statuses = _context.BookCode
                     .Where(c => c.Code_Type == "BOOK_STATUS")
-                    .Select(c => new SelectListItem { Value = c.Code_Id, Text = c.Code_Name })
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Code_Id ?? "",
+                        Text = c.Code_Name ?? "(未知狀態)"
+                    })
                     .ToList(),
-
                 BookData = query.OrderByDescending(b => b.Book_Bought_Date).ToList(),
 
                 BookName = bookName,

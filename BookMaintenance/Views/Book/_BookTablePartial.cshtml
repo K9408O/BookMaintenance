@@ -30,7 +30,8 @@
                             @book.Book_Name
                         </a>
                     </td>
-                    <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
+                    <td>(@book.Book_Bought_Date?.ToString("yyyy/MM/dd")??"")</td>
+
                     @* <td>@book.Book_Status</td> *@
                     <td>@book.Book_Status_Name</td>
                     <td>@book.Book_Keeper_Name</td>

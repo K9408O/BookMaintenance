@@ -29,7 +29,7 @@
     </tr>
     <tr>
         <th>購書日期</th>
-        <td>@Model.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
+        <td>@(Model.Book_Bought_Date?.ToString("yyyy/MM/dd")??"")</td>
     </tr>
     <tr>
         <th>圖書類別</th>
