@@ -52,59 +52,22 @@
     </div>
 </form>
 
-@if (Model.BookData != null && Model.BookData.Any())
-{
-    <table class="table table-bordered table-hover mt-4">
-        <colgroup>
-            <col style="width: 15%" />
-            <col style="width: 25%" />
-            <col style="width: 15%" />
-            <col style="width: 15%" />
-            <col style="width: 15%" />
-            <col style="width: 15%" />
-        </colgroup>
-        <thead>
-            <tr>
-                <th>圖書類別</th>
-                <th>書名</th>
-                <th>購書日期</th>
-                <th>借閱狀態</th>
-                <th>借閱人</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var book in Model.BookData)
-            {
-                <tr>
-                    <td>@book.Book_Class_Id</td> @* 或改成 book.BookClassName if joined *@
-                    <td>
-                        <a href="@Url.Action("Detail", "Book", new { id = book.Book_Id })">
-                            @book.Book_Name
-                        </a>
-                    </td>
-                    <td>@book.Book_Bought_Date.ToString("yyyy/MM/dd")</td>
-                    @* <td>@book.Book_Status</td> *@
-                    <td>@book.Book_Status_Name</td>
-                    <td>@book.Book_Keeper_Name</td>
-                    @*  <td>@book.Book_Keeper</td> 或改成 book.KeeperName if joined *@
-                    <td>
-                        <a class="btn btn-sm btn-info" href="@Url.Action("History", "Book", new { id = book.Book_Id })">借閱紀錄</a>
-                        <a class="btn btn-sm btn-warning" href="@Url.Action("Edit", "Book", new { id = book.Book_Id })">編輯</a>
-                        <a class="btn btn-sm btn-danger" onclick="return confirm('確定要刪除這筆資料嗎？')"
-                           href="@Url.Action("Delete", "Book", new { id = book.Book_Id })">刪除</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p class="text-muted mt-4">查無資料</p>
-}
+<div id="bookTableContainer">
+    @await Html.PartialAsync("_BookTablePartial", Model)
+</div>
+
 @section Scripts {
     <script>
+            function sortTable(sortOrder) {
+            const query = window.location.search;
+            const newUrl = `/Book/SortPartial${query}&sortOrder=${sortOrder}`;
+
+            fetch(newUrl)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("bookTableContainer").innerHTML = html;
+                });
+        }
         // ✅ 顯示錯誤訊息的 popup
         @if (TempData["ErrorMessage"] != null)
         {

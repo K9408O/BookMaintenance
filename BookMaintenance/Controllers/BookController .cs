@@ -1,5 +1,6 @@
 ﻿using BookMaintenance.Models;
 using BookMaintenance.Models.ViewModel;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -31,26 +32,27 @@ namespace BookMaintenance.Controllers
                         select new BookListItemViewModel
                         {
                             Book_Id = book.Book_Id,
-                            Book_Name = book.Book_Name,
-                            Book_Class_Id = book.Book_Class_Id,
+                            Book_Name = book.Book_Name ?? "",
+                            Book_Class_Id = book.Book_Class_Id ?? "",
                             Book_Bought_Date = book.Book_Bought_Date,
-                            Book_Status = book.Book_Status,
-                            Book_Status_Name = code.Code_Name ?? "",
-                            Book_Keeper = book.Book_Keeper,
-                            Book_Keeper_Name = member.User_Ename ?? ""
+                            Book_Status = book.Book_Status ?? "",
+                            Book_Status_Name = code != null ? code.Code_Name ?? "" : "",
+                            Book_Keeper = book.Book_Keeper ?? "",
+                            Book_Keeper_Name = member != null ? member.User_Ename ?? "" : ""
                         };
 
             if (!string.IsNullOrEmpty(bookName))
-                query = query.Where(b => b.Book_Name.Contains(bookName));
+                query = query.Where(b => (b.Book_Name ?? "").Contains(bookName));
 
             if (!string.IsNullOrEmpty(bookClassId))
-                query = query.Where(b => b.Book_Class_Id == bookClassId);
+                query = query.Where(b => (b.Book_Class_Id ?? "") == bookClassId);
 
             if (!string.IsNullOrEmpty(borrowerId))
-                query = query.Where(b => b.Book_Keeper == borrowerId);
+                query = query.Where(b => (b.Book_Keeper ?? "") == borrowerId);
 
             if (!string.IsNullOrEmpty(bookStatus))
-                query = query.Where(b => b.Book_Status == bookStatus);
+                query = query.Where(b => (b.Book_Status ?? "") == bookStatus);
+
 
             var viewModel = new BookQueryViewModel
             {
@@ -98,7 +100,7 @@ namespace BookMaintenance.Controllers
         [HttpPost]
         public IActionResult Create(BookCreateViewModel model)
         {
-        
+
             var entity = new BookData
             {
                 Book_Name = model.BookName,
@@ -109,11 +111,11 @@ namespace BookMaintenance.Controllers
                 Book_Class_Id = model.BookClassId,
                 Book_Amount = 1,
                 Book_Status = "A", // 預設可借閱
-                Book_Keeper ="",
+                Book_Keeper = "",
                 Create_Date = DateTime.Now,
                 Create_User = "admin", // 或從登入者取值
                 Modify_Date = DateTime.Now,
-                Modify_User= "admin"
+                Modify_User = "admin"
             };
 
             _context.BookData.Add(entity);
@@ -168,7 +170,7 @@ namespace BookMaintenance.Controllers
         [HttpPost]
         public IActionResult Edit(BookEditViewModel model)
         {
-          
+
             var entity = _context.BookData.FirstOrDefault(b => b.Book_Id == model.Book_Id);
             if (entity == null) return NotFound();
 
@@ -244,7 +246,7 @@ namespace BookMaintenance.Controllers
                 IsEdit = true
             };
         }
-       
+
         private IActionResult RedirectBackToCaller(int id)
         {
             var referer = Request.Headers["Referer"].ToString();
@@ -283,6 +285,46 @@ namespace BookMaintenance.Controllers
 
             ViewBag.BookName = _context.BookData.FirstOrDefault(b => b.Book_Id == id)?.Book_Name;
             return View(records);
+        }
+
+        public IActionResult SortPartial(string sortOrder)
+        {
+            var query = from book in _context.BookData
+                        join keeper in _context.Member on book.Book_Keeper equals keeper.User_Id into keepers
+                        from keeper in keepers.DefaultIfEmpty()
+
+                        join code in _context.BookCode.Where(c => c.Code_Type == "BOOK_STATUS")
+                            on book.Book_Status equals code.Code_Id into codes
+                        from code in codes.DefaultIfEmpty()
+
+                        select new BookListItemViewModel
+                        {
+                            Book_Id = book.Book_Id,
+                            Book_Name = book.Book_Name,
+                            Book_Bought_Date = book.Book_Bought_Date,
+                            Book_Class_Id = book.Book_Class_Id,
+                            Book_Status = book.Book_Status,
+                            Book_Status_Name = code.Code_Name ?? "",
+                            Book_Keeper = book.Book_Keeper,
+                            Book_Keeper_Name = keeper.User_Ename ?? ""
+                        };
+
+            // 🔃 排序
+            query = sortOrder switch
+            {
+                "name" => query.OrderBy(b => b.Book_Name),
+                "borrower" => query.OrderBy(b => b.Book_Keeper_Name),
+                _ => query.OrderBy(b => b.Book_Name)
+            };
+
+            var viewModel = new BookQueryViewModel
+            {
+                BookData = query.ToList()
+            };
+
+            return PartialView("_BookTablePartial", viewModel);
+
+
         }
     }
 }
