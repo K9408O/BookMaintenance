@@ -181,10 +181,13 @@ namespace BookMaintenance.Controllers
         [HttpPost]
         public IActionResult Edit(BookEditViewModel model)
         {
-
             var entity = _context.BookData.FirstOrDefault(b => b.Book_Id == model.Book_Id);
             if (entity == null) return NotFound();
 
+            var originalStatus = entity.Book_Status;
+            var originalKeeper = entity.Book_Keeper;
+
+            // 更新資料
             entity.Book_Name = model.Book_Name;
             entity.Book_Author = model.Book_Author;
             entity.Book_Publisher = model.Book_Publisher;
@@ -194,11 +197,37 @@ namespace BookMaintenance.Controllers
             entity.Book_Status = model.Book_Status;
             entity.Book_Keeper = (model.Book_Status == "A" || model.Book_Status == "U") ? "" : model.Book_Keeper;
             entity.Modify_Date = DateTime.Now;
-            entity.Modify_User = "admin"; // 或登入使用者
+            entity.Modify_User = "admin";
 
             _context.SaveChanges();
+
+            // 新增借閱紀錄（僅在狀態為「已借出」或「已借出(未領)」時）
+            if ((model.Book_Status == "B" || model.Book_Status == "C") &&
+               (originalStatus != model.Book_Status || originalKeeper != model.Book_Keeper))
+            {
+                if (!string.IsNullOrEmpty(model.Book_Keeper))
+                {
+                    var record = new BookLendRecord
+                    {
+                        Book_Id = model.Book_Id,
+                        Keeper_Id = model.Book_Keeper,
+                        Lend_Date = DateTime.Now,
+                        Cre_Date = DateTime.Now,
+                        Cre_Usr = "admin",
+                        Mod_Date = DateTime.Now,
+                        Mod_Usr = "admin"
+                    };
+
+                    _context.BookLendRecord.Add(record);
+                    _context.SaveChanges();
+                }
+            }
+
+            TempData["SuccessMessage"] = "儲存成功";
             return RedirectToAction("Index");
         }
+
+
         //刪除
         public IActionResult Delete(int id)
         {
